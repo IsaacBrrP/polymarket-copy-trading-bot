@@ -1,4 +1,5 @@
 import type { ClobClient } from '@polymarket/clob-client';
+import type { Wallet } from 'ethers';
 import type { RuntimeEnv } from '../config/env';
 import type { Logger } from '../utils/logger';
 import type { TradeSignal } from './tradeMonitor';
@@ -7,7 +8,7 @@ import { postOrder } from '../utils/postOrder';
 import { getUsdBalanceApprox } from '../utils/getMyBalance';
 
 export type TradeExecutorDeps = {
-  client: ClobClient;
+  client: ClobClient & { wallet: Wallet };
   proxyWallet: string;
   env: RuntimeEnv;
   logger: Logger;
