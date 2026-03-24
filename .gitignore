@@ -4,4 +4,12 @@ dist
 .DS_Store
 *.log
 
+# Security reports (may contain sensitive information)
+security-reports/
+*.security.json
+
+# Temporary files
+tmp/
+temp/
+*.tmp
 

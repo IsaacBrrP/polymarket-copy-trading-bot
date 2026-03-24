@@ -145,6 +145,32 @@ Note: This repository ships with a scaffolded monitor/executor. You can extend `
 Set environment variables via `.env` or your orchestrator (render, fly, k8s).
 
 
+## Security
+
+**Security Score: 75/100** ⚠️ (Fair - Acceptable with Reservations)
+
+This project includes comprehensive security scanning and analysis tools:
+
+```bash
+# Run automated security scan
+npm run security:scan
+
+# Run dependency security audit
+npm run security:audit
+```
+
+📊 **Security Documentation:**
+- [Complete Security Report (Spanish)](./docs/REPORTE_SEGURIDAD.md)
+- [Security Analysis (English)](./docs/SECURITY_ANALYSIS.md)
+
+**Current Status:**
+- ✅ No critical vulnerabilities
+- ⚠️ 1 high-severity issue (input validation)
+- ⚠️ 3 medium-severity issues (dependencies, Docker)
+- ✅ Automated security scanning implemented
+
+See [docs/README.md](./docs/README.md) for detailed security information and recommendations.
+
 ## Roadmap
 
 - Implement full trade fetching from Polymarket activity feeds
@@ -152,6 +178,7 @@ Set environment variables via `.env` or your orchestrator (render, fly, k8s).
 - Add MongoDB persistence with position tracking
 - Provide full simulation/backtesting toolkit
 - Add web dashboard for monitoring
+- ✅ Security scanning and analysis tools (COMPLETED)
 
 ## SEO – Polymarket Trading Bot & Copytrading
 
