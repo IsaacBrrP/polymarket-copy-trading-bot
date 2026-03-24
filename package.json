@@ -21,7 +21,9 @@
     "set-token-allowance": "ts-node src/scripts/setTokenAllowance.ts",
     "manual-sell": "ts-node src/scripts/manualSell.ts",
     "simulate": "ts-node src/scripts/runSimulations.ts",
-    "check-stats": "ts-node src/scripts/checkMyStats.ts"
+    "check-stats": "ts-node src/scripts/checkMyStats.ts",
+    "security:scan": "ts-node src/scripts/securityScan.ts",
+    "security:audit": "npm audit --audit-level=moderate"
   },
   "keywords": [
     "polymarket",
