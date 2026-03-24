@@ -44,13 +44,16 @@
   },
   "homepage": "https://github.com/your-org/polymarket-copy-trading-bot#readme",
   "dependencies": {
-    "@polymarket/clob-client": "^4.14.0",
+    "@polymarket/clob-client": "4.14.0",
     "axios": "^1.7.9",
     "chalk": "^5.4.1",
     "dotenv": "^16.4.7",
     "ethers": "^5.8.0",
     "mongoose": "^8.9.5",
     "ora": "^8.2.0"
+  },
+  "overrides": {
+    "axios": "^1.7.9"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
