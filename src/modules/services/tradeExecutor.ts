@@ -3,6 +3,7 @@ import type { Wallet } from 'ethers';
 import type { RuntimeEnv } from '../config/env';
 import type { Logger } from '../utils/logger';
 import type { TradeSignal } from './tradeMonitor';
+import type { StatusStore } from '../monitoring/statusStore';
 import { computeProportionalSizing } from '../config/copyStrategy';
 import { postOrder } from '../utils/postOrder';
 import { getUsdBalanceApprox } from '../utils/getMyBalance';
@@ -12,6 +13,7 @@ export type TradeExecutorDeps = {
   proxyWallet: string;
   env: RuntimeEnv;
   logger: Logger;
+  statusStore?: StatusStore;
 };
 
 export class TradeExecutor {
@@ -22,8 +24,10 @@ export class TradeExecutor {
   }
 
   async copyTrade(signal: TradeSignal): Promise<void> {
-    const { logger, env, client } = this.deps;
+    const { logger, env, client, statusStore } = this.deps;
     try {
+      statusStore?.recordTradeDetected(signal.trader, signal.marketId, signal.side);
+
       const yourUsdBalance = await getUsdBalanceApprox(client.wallet);
       const sizing = computeProportionalSizing({
         yourUsdBalance,
@@ -32,7 +36,9 @@ export class TradeExecutor {
         multiplier: env.tradeMultiplier,
       });
 
-      logger.info(`Sizing ratio ${(sizing.ratio * 100).toFixed(2)}% => ${sizing.targetUsdSize.toFixed(2)} USD`);
+      logger.info(
+        `Sizing ratio ${(sizing.ratio * 100).toFixed(2)}% => ${sizing.targetUsdSize.toFixed(2)} USD`,
+      );
 
       await postOrder({
         client,
@@ -41,10 +47,12 @@ export class TradeExecutor {
         side: signal.side,
         sizeUsd: sizing.targetUsdSize,
       });
+
+      statusStore?.recordTradeExecuted(signal.marketId, signal.side, sizing.targetUsdSize);
     } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
       logger.error('Failed to copy trade', err as Error);
+      statusStore?.recordError(`Failed to copy trade: ${message}`);
     }
   }
 }
-
-
