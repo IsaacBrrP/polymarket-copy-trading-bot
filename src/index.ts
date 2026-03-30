@@ -4,6 +4,8 @@ import { createPolymarketClient } from './modules/services/createClobClient';
 import { TradeMonitor } from './modules/services/tradeMonitor';
 import { TradeExecutor } from './modules/services/tradeExecutor';
 import { ConsoleLogger } from './modules/utils/logger';
+import { StatusStore } from './modules/monitoring/statusStore';
+import { createMonitoringServer } from './modules/monitoring/monitoringServer';
 
 async function main(): Promise<void> {
   const logger = new ConsoleLogger();
@@ -11,14 +13,26 @@ async function main(): Promise<void> {
 
   logger.info('Starting Polymarket Copy Trading Bot');
 
+  const statusStore = new StatusStore();
+  createMonitoringServer(statusStore, env.monitoringPort, env.monitoringHost, logger);
+
   const client = await createPolymarketClient({ rpcUrl: env.rpcUrl, privateKey: env.privateKey });
-  const executor = new TradeExecutor({ client, proxyWallet: env.proxyWallet, logger, env });
+  statusStore.setStarted(client.wallet.address);
+
+  const executor = new TradeExecutor({
+    client,
+    proxyWallet: env.proxyWallet,
+    logger,
+    env,
+    statusStore,
+  });
 
   const monitor = new TradeMonitor({
     client,
     logger,
     env,
     userAddresses: env.userAddresses,
+    statusStore,
     onDetectedTrade: async (signal) => {
       await executor.copyTrade(signal);
     },
@@ -28,9 +42,6 @@ async function main(): Promise<void> {
 }
 
 main().catch((err) => {
-  // eslint-disable-next-line no-console
   console.error('Fatal error', err);
   process.exit(1);
 });
-
-

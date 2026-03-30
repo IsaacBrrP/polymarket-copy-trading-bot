@@ -1,6 +1,7 @@
 import type { ClobClient } from '@polymarket/clob-client';
 import type { RuntimeEnv } from '../config/env';
 import type { Logger } from '../utils/logger';
+import type { StatusStore } from '../monitoring/statusStore';
 
 export type TradeSignal = {
   trader: string;
@@ -18,6 +19,7 @@ export type TradeMonitorDeps = {
   logger: Logger;
   userAddresses: string[];
   onDetectedTrade: (signal: TradeSignal) => Promise<void>;
+  statusStore?: StatusStore;
 };
 
 export class TradeMonitor {
@@ -29,11 +31,15 @@ export class TradeMonitor {
   }
 
   async start(): Promise<void> {
-    const { logger, env } = this.deps;
+    const { logger, env, statusStore } = this.deps;
     logger.info(
       `Monitoring ${this.deps.userAddresses.length} trader(s) every ${env.fetchIntervalSeconds}s...`,
     );
-    this.timer = setInterval(() => void this.tick().catch(() => undefined), env.fetchIntervalSeconds * 1000);
+    statusStore?.setConfig(this.deps.userAddresses.length, env.fetchIntervalSeconds);
+    this.timer = setInterval(
+      () => void this.tick().catch(() => undefined),
+      env.fetchIntervalSeconds * 1000,
+    );
     await this.tick();
   }
 
@@ -42,7 +48,7 @@ export class TradeMonitor {
   }
 
   private async tick(): Promise<void> {
-    const { logger } = this.deps;
+    const { logger, statusStore } = this.deps;
     try {
       // Placeholder: fetch recent fills for each tracked trader. Replace with Polymarket APIs as needed
       for (const trader of this.deps.userAddresses) {
@@ -50,10 +56,11 @@ export class TradeMonitor {
         logger.debug(`Polling activity for ${trader}`);
         // No-op in scaffold
       }
+      statusStore?.recordPoll();
     } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
       logger.error('Monitor tick failed', err as Error);
+      statusStore?.recordError(`Monitor tick failed: ${message}`);
     }
   }
 }
-
-

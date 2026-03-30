@@ -116,9 +116,79 @@ Note: This repository ships with a scaffolded monitor/executor. You can extend `
 ## Scripts
 
 - `npm run dev` – run the bot in dev mode (ts-node)
+- `npm run dev:monitor` – run in dev mode with monitoring server on port 3001
 - `npm run start` – run the compiled bot
 - `npm run check-allowance` – example utility script (scaffold)
 - `npm run simulate` – placeholder for simulation runner
+
+
+## Monitoring Interface
+
+The bot ships with a built-in HTTP monitoring server that exposes runtime status without leaking secrets.
+
+### Endpoints
+
+| Endpoint | Description |
+| --- | --- |
+| `GET /` | Lightweight HTML dashboard (auto-refreshes every 10 s) |
+| `GET /health` | JSON health check `{ ok, running, uptime }` |
+| `GET /status` | Full JSON status (state, last poll, events, errors, wallet address) |
+
+### Quick Start
+
+```bash
+# Dev mode with monitor (default port 3001)
+npm run dev:monitor
+
+# Check health
+curl http://localhost:3001/health
+
+# Full status
+curl http://localhost:3001/status
+
+# Open dashboard in browser
+open http://localhost:3001
+```
+
+### Configuration
+
+Add to your `.env`:
+
+```env
+MONITORING_PORT=3001        # default – change if port is taken
+MONITORING_HOST=127.0.0.1  # default – localhost only (safe for local use)
+```
+
+### Docker / Compose
+
+The monitoring port is exposed automatically via `docker-compose`:
+
+```bash
+docker-compose up -d
+# Dashboard available at http://localhost:3001
+```
+
+To override the port:
+
+```env
+MONITORING_PORT=8080
+```
+
+### Status Fields
+
+| Field | Description |
+| --- | --- |
+| `running` | Whether the bot loop is active |
+| `startedAt` | Unix timestamp of bot start |
+| `lastPollAt` | Timestamp of the last poll cycle |
+| `monitoredTraderCount` | Number of trader addresses being monitored |
+| `pollIntervalSeconds` | Configured poll frequency |
+| `recentEvents` | Bounded list of last 50 events (polls, trades, errors) |
+| `errorCount` | Cumulative error count since start |
+| `lastError` | Most recent error message (if any) |
+| `walletAddress` | Your public wallet address (**never** private key) |
+
+> **Security**: The monitoring endpoint never exposes `PRIVATE_KEY` or any other secret environment variable.
 
 
 ## Configuration Reference
@@ -134,15 +204,18 @@ Note: This repository ships with a scaffolded monitor/executor. You can extend `
 | `RETRY_LIMIT` | Max retry attempts on failures | `3` |
 | `TRADE_AGGREGATION_ENABLED` | Aggregate sub-$1 buys into one order | `true` |
 | `TRADE_AGGREGATION_WINDOW_SECONDS` | Aggregation window (seconds) | `300` |
+| `MONITORING_PORT` | HTTP monitoring server port | `3001` |
+| `MONITORING_HOST` | Monitoring server bind address (`127.0.0.1` = localhost only) | `127.0.0.1` |
 
 
 ## Deployment
 
 - Local: `npm run build && npm start`
-- Docker: `docker build -t polymarket-copy-bot . && docker run --env-file .env polymarket-copy-bot`
+- Docker: `docker build -t polymarket-copy-bot . && docker run --env-file .env -p 3001:3001 polymarket-copy-bot`
 - Compose: `docker-compose up -d`
 
 Set environment variables via `.env` or your orchestrator (render, fly, k8s).
+
 
 
 ## Security

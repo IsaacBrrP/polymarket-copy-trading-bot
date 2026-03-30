@@ -11,6 +11,8 @@ export type RuntimeEnv = {
   retryLimit: number;
   aggregationEnabled: boolean;
   aggregationWindowSeconds: number;
+  monitoringPort: number;
+  monitoringHost: string;
 };
 
 export function loadEnv(): RuntimeEnv {
@@ -77,6 +79,8 @@ export function loadEnv(): RuntimeEnv {
     retryLimit: validateNumber(process.env.RETRY_LIMIT ?? 3, 'RETRY_LIMIT', 0, 100),
     aggregationEnabled: String(process.env.TRADE_AGGREGATION_ENABLED ?? 'false') === 'true',
     aggregationWindowSeconds: validateNumber(process.env.TRADE_AGGREGATION_WINDOW_SECONDS ?? 300, 'TRADE_AGGREGATION_WINDOW_SECONDS', 0),
+    monitoringPort: validateNumber(process.env.MONITORING_PORT ?? 3001, 'MONITORING_PORT', 1, 65535),
+    monitoringHost: process.env.MONITORING_HOST ?? '127.0.0.1',
   };
 
   return env;
