@@ -7,5 +7,3 @@ export type TradeEvent = {
   price: number;
   timestamp: number;
 };
-
-

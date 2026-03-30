@@ -18,6 +18,8 @@ export type TradeMonitorDeps = {
   logger: Logger;
   userAddresses: string[];
   onDetectedTrade: (signal: TradeSignal) => Promise<void>;
+  /** Optional hook called on every poll tick (used for state tracking). */
+  onTick?: () => void;
 };
 
 export class TradeMonitor {
@@ -33,7 +35,10 @@ export class TradeMonitor {
     logger.info(
       `Monitoring ${this.deps.userAddresses.length} trader(s) every ${env.fetchIntervalSeconds}s...`,
     );
-    this.timer = setInterval(() => void this.tick().catch(() => undefined), env.fetchIntervalSeconds * 1000);
+    this.timer = setInterval(
+      () => void this.tick().catch(() => undefined),
+      env.fetchIntervalSeconds * 1000,
+    );
     await this.tick();
   }
 
@@ -44,6 +49,7 @@ export class TradeMonitor {
   private async tick(): Promise<void> {
     const { logger } = this.deps;
     try {
+      this.deps.onTick?.();
       // Placeholder: fetch recent fills for each tracked trader. Replace with Polymarket APIs as needed
       for (const trader of this.deps.userAddresses) {
         // TODO: Implement real fetch from Polymarket activity feed
@@ -55,5 +61,3 @@ export class TradeMonitor {
     }
   }
 }
-
-

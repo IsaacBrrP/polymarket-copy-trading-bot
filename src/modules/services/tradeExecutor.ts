@@ -32,7 +32,9 @@ export class TradeExecutor {
         multiplier: env.tradeMultiplier,
       });
 
-      logger.info(`Sizing ratio ${(sizing.ratio * 100).toFixed(2)}% => ${sizing.targetUsdSize.toFixed(2)} USD`);
+      logger.info(
+        `Sizing ratio ${(sizing.ratio * 100).toFixed(2)}% => ${sizing.targetUsdSize.toFixed(2)} USD`,
+      );
 
       await postOrder({
         client,
@@ -46,5 +48,3 @@ export class TradeExecutor {
     }
   }
 }
-
-

@@ -19,6 +19,7 @@
     "check-allowance": "ts-node src/scripts/checkAllowance.ts",
     "verify-allowance": "ts-node src/scripts/verifyAllowance.ts",
     "set-token-allowance": "ts-node src/scripts/setTokenAllowance.ts",
+    "readiness-check": "ts-node src/scripts/readinessCheck.ts",
     "manual-sell": "ts-node src/scripts/manualSell.ts",
     "simulate": "ts-node src/scripts/runSimulations.ts",
     "check-stats": "ts-node src/scripts/checkMyStats.ts",

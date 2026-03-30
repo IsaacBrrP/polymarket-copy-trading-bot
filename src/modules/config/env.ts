@@ -40,7 +40,12 @@ export function loadEnv(): RuntimeEnv {
     return address;
   };
 
-  const validateNumber = (value: string | number, name: string, min?: number, max?: number): number => {
+  const validateNumber = (
+    value: string | number,
+    name: string,
+    min?: number,
+    max?: number,
+  ): number => {
     const num = Number(value);
     if (isNaN(num) || !isFinite(num)) {
       throw new Error(`Invalid ${name}: ${value} (must be a valid number)`);
@@ -55,7 +60,11 @@ export function loadEnv(): RuntimeEnv {
   };
 
   const validateRpcUrl = (url: string): string => {
-    if (!url.startsWith('https://') && !url.startsWith('http://localhost') && !url.startsWith('http://127.0.0.1')) {
+    if (
+      !url.startsWith('https://') &&
+      !url.startsWith('http://localhost') &&
+      !url.startsWith('http://127.0.0.1')
+    ) {
       throw new Error('RPC_URL must use HTTPS protocol (or localhost for development)');
     }
     return url;
@@ -63,12 +72,15 @@ export function loadEnv(): RuntimeEnv {
 
   const userAddressList = parseList(process.env.USER_ADDRESSES);
   const validatedUserAddresses = userAddressList.map((addr, idx) =>
-    validateAddress(addr, `USER_ADDRESSES[${idx}]`)
+    validateAddress(addr, `USER_ADDRESSES[${idx}]`),
   );
 
   const env: RuntimeEnv = {
     userAddresses: validatedUserAddresses,
-    proxyWallet: validateAddress(required('PROXY_WALLET', process.env.PROXY_WALLET), 'PROXY_WALLET'),
+    proxyWallet: validateAddress(
+      required('PROXY_WALLET', process.env.PROXY_WALLET),
+      'PROXY_WALLET',
+    ),
     privateKey: required('PRIVATE_KEY', process.env.PRIVATE_KEY),
     mongoUri: process.env.MONGO_URI,
     rpcUrl: validateRpcUrl(required('RPC_URL', process.env.RPC_URL)),
@@ -76,10 +88,12 @@ export function loadEnv(): RuntimeEnv {
     tradeMultiplier: validateNumber(process.env.TRADE_MULTIPLIER ?? 1.0, 'TRADE_MULTIPLIER', 0),
     retryLimit: validateNumber(process.env.RETRY_LIMIT ?? 3, 'RETRY_LIMIT', 0, 100),
     aggregationEnabled: String(process.env.TRADE_AGGREGATION_ENABLED ?? 'false') === 'true',
-    aggregationWindowSeconds: validateNumber(process.env.TRADE_AGGREGATION_WINDOW_SECONDS ?? 300, 'TRADE_AGGREGATION_WINDOW_SECONDS', 0),
+    aggregationWindowSeconds: validateNumber(
+      process.env.TRADE_AGGREGATION_WINDOW_SECONDS ?? 300,
+      'TRADE_AGGREGATION_WINDOW_SECONDS',
+      0,
+    ),
   };
 
   return env;
 }
-
-

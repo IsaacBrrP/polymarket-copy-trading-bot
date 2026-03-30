@@ -24,7 +24,8 @@ Keywords: polymarket copy trading bot, polymarket trading bot, polymarket copytr
 - Real-time monitoring with retry/backoff and structured logs
 - Safety checks: min order size, basic slippage guard (scaffold), retry limit
 - Extensible strategy layer and modular services
-- CLI utilities (allowance, stats, simulations – scaffold)
+- CLI utilities: allowance check/set/verify, readiness check, stats, simulations
+- Live status dashboard (HTTP) and JSON health endpoint
 - Docker-ready and cloud-friendly
 
 
@@ -117,22 +118,136 @@ Note: This repository ships with a scaffolded monitor/executor. You can extend `
 
 - `npm run dev` – run the bot in dev mode (ts-node)
 - `npm run start` – run the compiled bot
-- `npm run check-allowance` – example utility script (scaffold)
+- `npm run readiness-check` – verify env, RPC, gas, USDC balance & allowance before starting
+- `npm run check-allowance` – show current USDC allowance for the Polymarket spender
+- `npm run set-token-allowance` – submit on-chain `approve()` for the Polymarket spender
+- `npm run verify-allowance` – confirm allowance ≥ threshold (exits 0 = ready, 2 = not ready)
 - `npm run simulate` – placeholder for simulation runner
+
+
+## After Funding Your Wallet
+
+> **Pasos rápidos después de enviar USDC a tu wallet:**
+
+### 1. Verify your balances and allowance
+
+```bash
+npm run readiness-check
+```
+
+This single command checks everything before you start:
+- ✅ Environment variables valid
+- ✅ RPC reachable
+- ✅ POL/MATIC gas balance ≥ 0.01
+- ✅ USDC balance ≥ 10
+- ✅ USDC allowance ≥ 10 for the Polymarket spender
+
+If any check fails you will see `[WARN]` with the exact fix.
+
+### 2. Approve USDC spending (first time only)
+
+```bash
+npm run set-token-allowance
+```
+
+Output shows the transaction hash and confirmation block. You only need to do this once per wallet.
+
+```
+[INFO] Wallet   : 0xYourWallet...
+[INFO] Spender  : 0x4bFb41d5B3570DeFd03C39a9A4d8de6bd8B8982E
+[INFO] Current USDC allowance: 0.0
+[INFO] Submitting approval transaction...
+[INFO] Tx hash  : 0xabc123...
+[INFO] Confirmed in block 12345678. Approval successful.
+```
+
+### 3. Confirm readiness
+
+```bash
+npm run verify-allowance
+```
+
+Exits with code 0 if ready, code 2 if more USDC or allowance is needed.
+
+### 4. Start the bot
+
+```bash
+# Local:
+npm run dev
+
+# Docker:
+docker compose up -d
+docker compose logs -f
+```
+
+
+## Monitoring the Bot
+
+### Live status dashboard
+
+While the bot is running, open your browser at:
+
+```
+http://localhost:3001/
+```
+
+The dashboard auto-refreshes every 10 seconds and shows:
+- Running status and uptime
+- Number of monitored traders and poll interval
+- Last poll time
+- Wallet address, native balance, USDC balance
+- Error count and last error message
+- Last 20 events (detected trades, mirrored trades, failures)
+
+No private key or secret is ever included in the dashboard output.
+
+### JSON endpoints (for automation / curl)
+
+```bash
+# Quick health check (200 = running, 503 = stopped)
+curl http://localhost:3001/health
+
+# Full status as JSON
+curl http://localhost:3001/status
+```
+
+### Container logs
+
+```bash
+docker compose logs -f
+```
+
+Expected healthy output:
+```
+[INFO] Starting Polymarket Copy Trading Bot
+[INFO] Status dashboard: http://localhost:3001/ | JSON: /status | Health: /health
+[INFO] Monitoring 2 trader(s) every 1s...
+```
+
+### Disable the status server
+
+Set `STATUS_ENABLED=false` in your `.env` to run without the HTTP server.
+
 
 
 ## Configuration Reference
 
-| Variable | Description | Example |
+| Variable | Description | Default |
 | --- | --- | --- |
-| `USER_ADDRESSES` | Traders to copy (comma-separated or JSON array) | `"0xabc...,0xdef..."` |
-| `PROXY_WALLET` | Your Polygon wallet address | `"0x123..."` |
-| `PRIVATE_KEY` | Private key without 0x prefix | `"abcd..."` |
-| `RPC_URL` | Polygon RPC endpoint | `"https://polygon-mainnet.infura.io/v3/..."` |
+| `USER_ADDRESSES` | Traders to copy (comma-separated or JSON array) | required |
+| `PROXY_WALLET` | Your Polygon wallet address | required |
+| `PRIVATE_KEY` | Private key without `0x` prefix | required |
+| `RPC_URL` | Polygon RPC endpoint (HTTPS) | required |
+| `POLYMARKET_SPENDER` | CTF Exchange spender address | `0x4bFb41d5...` |
+| `MIN_USDC_THRESHOLD` | Min USDC for readiness/verify checks | `10` |
+| `MIN_GAS_THRESHOLD` | Min POL/MATIC for gas (readiness check) | `0.01` |
+| `READINESS_STRICT` | Exit on readiness warnings (`false` = warn only) | `true` |
+| `STATUS_PORT` | Port for HTTP status/dashboard server | `3001` |
+| `STATUS_ENABLED` | Enable HTTP status server | `true` |
 | `FETCH_INTERVAL` | Poll frequency in seconds | `1` |
-| `TRADE_MULTIPLIER` | Scale position size relative to trader | `2.0` |
+| `TRADE_MULTIPLIER` | Scale position size relative to trader | `1.0` |
 | `RETRY_LIMIT` | Max retry attempts on failures | `3` |
-| `TRADE_AGGREGATION_ENABLED` | Aggregate sub-$1 buys into one order | `true` |
+| `TRADE_AGGREGATION_ENABLED` | Aggregate sub-$1 buys into one order | `false` |
 | `TRADE_AGGREGATION_WINDOW_SECONDS` | Aggregation window (seconds) | `300` |
 
 
@@ -177,7 +292,7 @@ See [docs/README.md](./docs/README.md) for detailed security information and rec
 - Finish order routing with price protection and min-size enforcement
 - Add MongoDB persistence with position tracking
 - Provide full simulation/backtesting toolkit
-- Add web dashboard for monitoring
+- ✅ Live status dashboard + JSON health endpoint (COMPLETED)
 - ✅ Security scanning and analysis tools (COMPLETED)
 
 ## SEO – Polymarket Trading Bot & Copytrading

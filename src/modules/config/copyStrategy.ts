@@ -18,5 +18,3 @@ export function computeProportionalSizing(input: CopyInputs): SizingResult {
   const targetUsdSize = Math.max(1, base * Math.max(0, multiplier));
   return { targetUsdSize, ratio };
 }
-
-

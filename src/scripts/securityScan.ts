@@ -59,7 +59,8 @@ class SecurityScanner {
         category: 'Configuration',
         file: '.env.example',
         description: 'Missing .env.example file for documentation',
-        recommendation: 'Create .env.example with placeholder values to document required environment variables',
+        recommendation:
+          'Create .env.example with placeholder values to document required environment variables',
         cwe: 'CWE-520',
       });
     }
@@ -86,7 +87,10 @@ class SecurityScanner {
   private async scanForHardcodedSecrets(): Promise<void> {
     const srcDir = path.join(process.cwd(), 'src');
     const patterns = [
-      { regex: /private[_-]?key\s*[:=]\s*["'](?!.*env|.*process\.env)[^"']{20,}/gi, name: 'Private Key' },
+      {
+        regex: /private[_-]?key\s*[:=]\s*["'](?!.*env|.*process\.env)[^"']{20,}/gi,
+        name: 'Private Key',
+      },
       { regex: /api[_-]?key\s*[:=]\s*["'](?!.*env|.*process\.env)[^"']{20,}/gi, name: 'API Key' },
       { regex: /secret\s*[:=]\s*["'](?!.*env|.*process\.env)[^"']{20,}/gi, name: 'Secret' },
       { regex: /password\s*[:=]\s*["'](?!.*env|.*process\.env).+["']/gi, name: 'Password' },
@@ -104,7 +108,8 @@ class SecurityScanner {
             file: filePath,
             line: lineNumber,
             description: `Potential hardcoded ${pattern.name} detected`,
-            recommendation: 'Use environment variables or secure secret management for sensitive data',
+            recommendation:
+              'Use environment variables or secure secret management for sensitive data',
             cwe: 'CWE-798',
           });
         }
@@ -131,7 +136,9 @@ class SecurityScanner {
       }
 
       // Check for console.log with potential sensitive data
-      const consoleMatches = content.matchAll(/console\.(log|error|warn|info)\((.*privateKey|.*password|.*secret)/gi);
+      const consoleMatches = content.matchAll(
+        /console\.(log|error|warn|info)\((.*privateKey|.*password|.*secret)/gi,
+      );
       for (const match of consoleMatches) {
         const lineNumber = content.substring(0, match.index).split('\n').length;
         this.addIssue({
@@ -196,7 +203,8 @@ class SecurityScanner {
             category: 'Dependency',
             file: 'package.json',
             description: 'Using ethers v5 without dependency overrides',
-            recommendation: 'Add axios override in package.json to mitigate HIGH severity vulnerabilities',
+            recommendation:
+              'Add axios override in package.json to mitigate HIGH severity vulnerabilities',
             cwe: 'CWE-1104',
           });
         }
@@ -267,7 +275,8 @@ class SecurityScanner {
       const content = fs.readFileSync(envFile, 'utf-8');
 
       // Check for address validation
-      const hasAddressValidation = content.includes('isAddress(') || content.includes('utils.isAddress');
+      const hasAddressValidation =
+        content.includes('isAddress(') || content.includes('utils.isAddress');
       const hasAddressField = content.includes('Address') || content.includes('address');
 
       if (hasAddressField && !hasAddressValidation) {
@@ -349,7 +358,11 @@ class SecurityScanner {
       }
 
       // Check for sensitive data in comments
-      if (/(password|secret|key)\s*[:=]\s*\w+/i.test(content.match(/\/\/.*|\/\*[\s\S]*?\*\//g)?.join('') || '')) {
+      if (
+        /(password|secret|key)\s*[:=]\s*\w+/i.test(
+          content.match(/\/\/.*|\/\*[\s\S]*?\*\//g)?.join('') || '',
+        )
+      ) {
         this.addIssue({
           severity: 'MEDIUM',
           category: 'Data Exposure',
@@ -497,8 +510,7 @@ class SecurityScanner {
     if (report.criticalIssues > 0)
       console.log(chalk.red(`  🔴 Critical: ${report.criticalIssues}`));
     if (report.highIssues > 0) console.log(chalk.red(`  🟠 High: ${report.highIssues}`));
-    if (report.mediumIssues > 0)
-      console.log(chalk.yellow(`  🟡 Medium: ${report.mediumIssues}`));
+    if (report.mediumIssues > 0) console.log(chalk.yellow(`  🟡 Medium: ${report.mediumIssues}`));
     if (report.lowIssues > 0) console.log(chalk.blue(`  🔵 Low: ${report.lowIssues}`));
     if (report.infoIssues > 0) console.log(chalk.gray(`  ⚪ Info: ${report.infoIssues}`));
 
