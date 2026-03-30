@@ -1,8 +1,9 @@
-version: "3.9"
 services:
   polymarket-copy-bot:
     build: .
     restart: unless-stopped
+    ports:
+      - "${STATUS_PORT:-3001}:${STATUS_PORT:-3001}"
     environment:
       - USER_ADDRESSES=${USER_ADDRESSES}
       - PROXY_WALLET=${PROXY_WALLET}
@@ -13,5 +14,8 @@ services:
       - RETRY_LIMIT=${RETRY_LIMIT:-3}
       - TRADE_AGGREGATION_ENABLED=${TRADE_AGGREGATION_ENABLED:-false}
       - TRADE_AGGREGATION_WINDOW_SECONDS=${TRADE_AGGREGATION_WINDOW_SECONDS:-300}
+      - STATUS_PORT=${STATUS_PORT:-3001}
+      - STATUS_ENABLED=${STATUS_ENABLED:-true}
+      - POLYMARKET_SPENDER=${POLYMARKET_SPENDER:-0x4bFb41d5B3570DeFd03C39a9A4d8de6bd8B8982E}
 
 

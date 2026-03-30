@@ -13,5 +13,3 @@ export async function httpPost<T = unknown>(
   const res = await axios.post<T>(url, body, config);
   return res.data;
 }
-
-

@@ -17,5 +17,3 @@ export async function postOrder(_input: PostOrderInput): Promise<void> {
   // You will translate marketId/outcome to instrument + side + quantity and submit via client.
   return;
 }
-
-
